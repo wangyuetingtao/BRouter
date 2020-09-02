@@ -11,10 +11,9 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.WildcardTypeName;
 import com.wyttlb.brouter_annotation.annotation.Route;
+import com.wyttlb.brouter_annotation.utils.Consts;
 
-import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -27,7 +26,6 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
 import javax.tools.Diagnostic;
 
 @AutoService(Processor.class)
@@ -60,8 +58,8 @@ public class RouteProcessor extends BaseProcessor {
                 while (iterator.hasNext()) {
                     Element route = (Element) iterator.next();
                     if (route instanceof TypeElement)
-                    //获取注解element所在的类Element
-                    routeMap.put(((Route)route.getAnnotation(Route.class)).path(), (TypeElement) route);
+                        //获取注解element所在的类Element
+                        routeMap.put(route.getAnnotation(Route.class).path(), (TypeElement) route);
                 }
                 messager.printMessage(Diagnostic.Kind.WARNING, routeMap.toString());
                 genJavaFile(routeMap);
@@ -72,11 +70,10 @@ public class RouteProcessor extends BaseProcessor {
     }
 
     private void genJavaFile(Map<String, TypeElement> routeMap) {
-        ParameterizedTypeName mapType = ParameterizedTypeName.get(ClassName.get("java.util", "HashMap", new String[0]),
-                new TypeName[]{ClassName.get("java.lang", "String", new String[0]),
-                        ParameterizedTypeName.get(ClassName.get(Class.class), new TypeName[]{
-                                WildcardTypeName.subtypeOf(Object.class)
-                        })});
+        //  private static final HashMap<String, Class<?>> ROUTE_MAP = new HashMap<>();
+        ParameterizedTypeName mapType = ParameterizedTypeName.get(ClassName.get("java.util", "HashMap"),
+                ClassName.get("java.lang", "String"),
+                ParameterizedTypeName.get(ClassName.get(Class.class), WildcardTypeName.subtypeOf(Object.class)));
 
         FieldSpec mapField = FieldSpec.builder(mapType, "ROUTE_MAP", new Modifier[]{Modifier.STATIC, Modifier.PRIVATE, Modifier.FINAL}).initializer("new HashMap<>()", new Object[0]).build();
         CodeBlock.Builder staticBlock = CodeBlock.builder();
@@ -84,22 +81,21 @@ public class RouteProcessor extends BaseProcessor {
 
         while (iterator.hasNext()) {
             Map.Entry<String, TypeElement> entry = (Map.Entry) iterator.next();
-            TypeElement element = entry.getValue();
             staticBlock.addStatement("ROUTE_MAP.put($S, $T.class)",
                     new Object[]{entry.getKey(), ClassName.get((TypeElement) entry.getValue())});
 
         }
 
-        TypeSpec clazz = TypeSpec.classBuilder("_BRouterRegister_")
+        TypeSpec clazz = TypeSpec.classBuilder(Consts.GENERATE_CLASS_NAME)
                 .addModifiers(Modifier.PUBLIC)
                 .addField(mapField)
-                .addStaticBlock(staticBlock.build()).addMethod(MethodSpec.methodBuilder("getRouterMap")
+                .addStaticBlock(staticBlock.build()).addMethod(MethodSpec.methodBuilder(Consts.METHOD_NAME)
                         .addModifiers(new Modifier[]{Modifier.PUBLIC, Modifier.STATIC})
                         .returns(mapType).addCode("return ROUTE_MAP;\n", new Object[0]).build()).build();
 
 
         try {
-            JavaFile.builder("com.wyttlb.generator", clazz).build().writeTo(mFiler);
+            JavaFile.builder(Consts.FACADE_PACKAGE, clazz).build().writeTo(mFiler);
         } catch (IOException exception) {
             exception.printStackTrace();
         }

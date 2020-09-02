@@ -1,3 +1,4 @@
+include ':brouter-api'
 include ':brouter-annotation'
 include ':app'
 rootProject.name = "BRouter"
