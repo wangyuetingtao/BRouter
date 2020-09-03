@@ -2,7 +2,9 @@ package com.wyttlb.brouter.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityOptionsCompat;
+import androidx.fragment.app.Fragment;
 
+import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -25,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
     Button btnGoThirdWithResult;
     Button btnGoFourWithInterceptorMulti;
     Button btnGoThirdWithInterceptorOne;
+    Button btnGoFragment;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
         btnGoThirdWithResult = findViewById(R.id.btn_go_third_with_result);
         btnGoFourWithInterceptorMulti = findViewById(R.id.btn_go_four_with_interceptor_multi);
         btnGoThirdWithInterceptorOne = findViewById(R.id.btn_go_third_with_interceptor_one);
+        btnGoFragment = findViewById(R.id.btn_go_fragment);
 
         btnGoSecond.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -97,6 +101,15 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 BRouter.getInstance().build(Constant.THIRD_ACTIVITY)
                         .navigation(MainActivity.this);
+            }
+        });
+
+        btnGoFragment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Fragment fragment = (Fragment) BRouter.getInstance().build(Constant.TEST_FRAGMENT).navigation(MainActivity.this);
+                Toast.makeText(MainActivity.this, "fragment实例=" + fragment, Toast.LENGTH_SHORT).show();
+
             }
         });
 

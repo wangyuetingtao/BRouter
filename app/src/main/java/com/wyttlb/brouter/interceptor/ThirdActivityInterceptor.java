@@ -1,5 +1,6 @@
 package com.wyttlb.brouter.interceptor;
 
+import com.wyttlb.brouter.activity.SecondActivity;
 import com.wyttlb.brouter.utils.Constant;
 import com.wyttlb.brouter_api.BRouterMeta;
 import com.wyttlb.brouter_api.IRouteInteceptor;
@@ -14,7 +15,8 @@ import com.wyttlb.brouter_api.ServiceProvider;
 public class ThirdActivityInterceptor implements IRouteInteceptor{
     @Override
     public boolean intercept(BRouterMeta meta) {
-
+        //重定向到第二个activity
+        meta.setDestCls(SecondActivity.class);
         return false;
     }
 }

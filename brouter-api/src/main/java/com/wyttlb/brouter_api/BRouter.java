@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
@@ -21,6 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.Set;
 
 /**
  * 静态内部类单例,提供路由常用api
@@ -90,6 +92,18 @@ public class BRouter {
            listInteceptor.add(interceptor);
         }
 
+        //提前对拦截器做优先级排序
+        for (String key : mInteceptors.keySet()) {
+            if (mInteceptors.get(key).size() > 1) {
+                Collections.sort(mInteceptors.get(key), (Comparator<Object>) (t1, t2) -> {
+                    int priority1 = t1.getClass().getAnnotation(ServiceProvider.class).priority();
+                    int priority2 = t2.getClass().getAnnotation(ServiceProvider.class).priority();
+
+                    return (priority1 - priority2) % 2;
+                });
+            }
+        }
+
         isInitial = true;
     }
 
@@ -139,14 +153,6 @@ public class BRouter {
         //获取当前路由的拦截器,相同url可能有多个拦截器,优先级高的先被调用
         List<IRouteInteceptor> interceptors = mInteceptors.get(meta.getURl());
         if (interceptors != null && interceptors.size() > 0) {
-            Collections.sort(interceptors, new Comparator<IRouteInteceptor>() {
-                @Override
-                public int compare(IRouteInteceptor t1, IRouteInteceptor t2) {
-                    int priority1 = t1.getClass().getAnnotation(ServiceProvider.class).priority();
-                    int priority2 = t2.getClass().getAnnotation(ServiceProvider.class).priority();
-                    return priority1 - priority2;
-                }
-            });
             for (IRouteInteceptor interceptor : interceptors) {
                 if(interceptor.intercept(meta)) {
                     return true;
@@ -177,8 +183,12 @@ public class BRouter {
         }
         //尝试跳转
         try {
-            if (meta.getRequestCode() >= 0 && currentContext instanceof Activity) {
-                ActivityCompat.startActivityForResult((Activity) currentContext, intent, meta.getRequestCode(), meta.getActivityOptionsCompat() != null ? meta.getActivityOptionsCompat().toBundle() : null);
+            if (meta.getRequestCode() >= 0) {
+                if (currentContext instanceof Activity) {
+                    ActivityCompat.startActivityForResult((Activity) currentContext, intent, meta.getRequestCode(), meta.getActivityOptionsCompat() != null ? meta.getActivityOptionsCompat().toBundle() : null);
+                } else {
+                    throw new IllegalAccessException("context should be an activity");
+                }
             } else {
                 ActivityCompat.startActivity(currentContext, intent, meta.getActivityOptionsCompat() != null ? meta.getActivityOptionsCompat().toBundle() : null);
             }

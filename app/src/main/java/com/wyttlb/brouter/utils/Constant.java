@@ -22,4 +22,9 @@ public class Constant {
      * four activity
      */
     public static final String FOUR_ACTIVITY = "main/FourActivity";
+
+    /**
+     * fragment
+     */
+    public static final String TEST_FRAGMENT = "main/Fragment";
 }
