@@ -71,7 +71,7 @@
         app:layout_constraintTop_toBottomOf="@+id/btn_go_third_with_result"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        android:text="跳转第三个activity 重定向到第二个activity"
+        android:text="跳转第三个activity 单个拦截器"
         ></Button>
 
     <Button

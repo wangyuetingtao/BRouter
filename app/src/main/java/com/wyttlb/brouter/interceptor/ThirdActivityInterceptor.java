@@ -16,7 +16,7 @@ public class ThirdActivityInterceptor implements IRouteInteceptor{
     @Override
     public boolean intercept(BRouterMeta meta) {
         //重定向到第二个activity
-        meta.setDestCls(SecondActivity.class);
+        //meta.setDestCls(SecondActivity.class);
         return false;
     }
 }
